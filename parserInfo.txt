@@ -1,0 +1,43 @@
+# Wikipedia paragraph -> sentence parser
+
+This small utility fetches a Wikipedia article by URL, extracts visible article paragraphs, and splits each paragraph into individual sentences.
+
+Usage (after installing requirements):
+
+```bash
+python examples/run_wikipedia_parser.py "https://en.wikipedia.org/wiki/Natural_language_processing"
+```
+
+Outputs the first few paragraphs and their sentence splits.
+
+Notes:
+- The parser uses `requests` + `beautifulsoup4` to extract paragraphs from the article body.
+- Sentence splitting uses `nltk.sent_tokenize` when `nltk` is available (and downloads punkt if needed); otherwise a conservative regex fallback is used.
+- This is a small utility intended for prototyping; for production use you may want to add robust handling of languages, edge-cases and rate-limiting.
+
+TF‑IDF vectorization (`--tfidf`)
+--------------------------------
+
+The example CLI supports a `--tfidf` flag which runs TF‑IDF vectorization over every extracted sentence (all paragraphs by default) using the project's `Phase_1.vectorizer.Vectorizer`.
+
+When `--tfidf` is provided the script prints a compact summary: total paragraphs, total sentences, vocabulary size and vector length, plus a small sample of sentence non‑zero feature counts.
+
+Example (CLI):
+
+```bash
+python examples/run_wikipedia_parser.py "https://en.wikipedia.org/wiki/Cat" --tfidf
+```
+
+Programmatic usage (to get vectors for all sentences):
+
+```python
+from wikipedia_parser import parse_url_to_paragraph_sentences, vectorize_paragraphs_tfidf
+
+paragraphs = parse_url_to_paragraph_sentences("https://en.wikipedia.org/wiki/Cat")
+res = vectorize_paragraphs_tfidf(paragraphs)
+# res contains: 'vocabulary', 'flat' (metadata), and 'vectors' (ordered TF-IDF vectors)
+```
+
+Notes:
+- Vectors are dense Python lists aligned with `res['vocabulary']`. For numeric workloads convert to NumPy arrays or a sparse format.
+- Duplicate sentence texts will produce identical TF‑IDF vectors; the helper preserves sentence order and metadata.
