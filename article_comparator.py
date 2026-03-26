@@ -11,6 +11,12 @@ from Phase_3.scorer import Scorer
 from wikipedia_parser import parse_url_to_paragraph_sentences
 
 
+# Pronouns to skip when comparing subject roles (mirrors role_comparator.py)
+_GENERIC_PRONOUNS = frozenset({
+    "it", "they", "he", "she", "we", "i", "you",
+    "this", "that", "these", "those", "one", "there",
+})
+
 # ─── Module-level helpers used by multiprocessing workers ────────────────────
 # These must be at module level (not inside a class or function) so that
 # Python's "spawn" start method on Windows can pickle and find them.
@@ -66,6 +72,11 @@ def _compare_roles_worker(matcher, roles_a, roles_b, role_weights,
             continue
         if val_a is None or val_b is None:
             score = 0.1
+        elif role == "subject" and (
+            val_a.lower() in _GENERIC_PRONOUNS or val_b.lower() in _GENERIC_PRONOUNS
+        ):
+            # Pronoun subjects carry no topic information — skip entirely
+            continue
         elif val_a == val_b:
             score = 1.0
         else:
@@ -81,6 +92,11 @@ def _compare_roles_worker(matcher, roles_a, roles_b, role_weights,
                 )
                 if is_antonym:
                     score -= antonym_verb_penalty
+                elif not matcher.share_synset(val_a, val_b) and score < 0.85:
+                    score = 0.0
+            if role == "object":
+                if not matcher.share_synset(val_a, val_b) and score < 0.75:
+                    score = 0.0
 
         w             = role_weights[role]
         weighted_sum += score * w

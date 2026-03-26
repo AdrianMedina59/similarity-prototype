@@ -1,6 +1,14 @@
 from Phase_2.synonym_matcher import SynonymMatcher
 from Phase_3.syntax_parser import SyntaxParser
 
+# Pronouns carry no topic information — matching "it" == "it" across two
+# completely unrelated sentences tells us nothing about similarity.
+# These are skipped (return None) when found in the subject slot.
+_GENERIC_PRONOUNS = frozenset({
+    "it", "they", "he", "she", "we", "i", "you",
+    "this", "that", "these", "those", "one", "there",
+})
+
 class RoleComparator:
     def __init__(self):
         self.parser = SyntaxParser()
@@ -46,29 +54,43 @@ class RoleComparator:
         #Both missing -> neutral, don't penalize
         if value_a is None and value_b is None:
             return None
-        
+
         #One missing -> partial mismatch
         if value_a is None or value_b is None:
             return 0.1
-        
-        #extract match
+
+        # Pronoun subjects carry no topic information — skip so they don't
+        # inflate the score when two unrelated sentences both open with "it"
+        if role_name == "subject":
+            if value_a.lower() in _GENERIC_PRONOUNS or value_b.lower() in _GENERIC_PRONOUNS:
+                return None
+
+        #exact match
         if value_a == value_b:
             return 1.0
-        
+
         #use phase 2 Wordnet for semantic similarity
         score = self.matcher.wu_palmer_similarity(value_a, value_b)
 
-       # Strict synset check for SUBJECT only
-       # Subjects are actors - unrelated subjects = unrelated sentences
+        # Strict synset check for SUBJECT
+        # Subjects are actors - unrelated subjects = unrelated sentences
         if role_name == "subject":
             if not self.matcher.share_synset(value_a, value_b) and score < 0.9:
                 score = 0.0
 
-        # For verbs: antonym penalty
+        # Strict threshold for VERB — only count clear synonym/antonym pairs.
+        # Raw Wu-Palmer leaks through for words that share only a distant
+        # hypernym (e.g. "keep" vs "apply" both trace back to "act").
         if role_name == "verb":
             if self.matcher.are_direct_antonyms(value_a, value_b) or self.is_known_antonym(value_a, value_b):
-                # print(f"   Antonym detected: '{value_a}' vs '{value_b}' -> penalty applied")
                 score -= self.ANTONYM_VERB_PENALTY
+            elif not self.matcher.share_synset(value_a, value_b) and score < 0.85:
+                score = 0.0
+
+        # Strict threshold for OBJECT — same reasoning as verb
+        if role_name == "object":
+            if not self.matcher.share_synset(value_a, value_b) and score < 0.75:
+                score = 0.0
 
         return score
     
