@@ -33,12 +33,12 @@ class Scorer:
 
         #weighted final score
         final = round((self.WEIGHTS["phase_1"] * p1) + (self.WEIGHTS["phase_2"] * p2) + (self.WEIGHTS["phase_3"] * p3), 4)
-        if verbose:
-            print(f"\n  Phase 1 (TF-IDF):   {p1:.4f} x {self.WEIGHTS['phase_1']} = {p1 * self.WEIGHTS['phase_1']:.4f}")
-            print(f"  Phase 2 (WordNet):  {p2:.4f} x {self.WEIGHTS['phase_2']} = {p2 * self.WEIGHTS['phase_2']:.4f}")
-            print(f"  Phase 3 (Syntax):   {p3:.4f} x {self.WEIGHTS['phase_3']} = {p3 * self.WEIGHTS['phase_3']:.4f}")
-            print(f"  ─────────────────────────────────")
-            print(f"  Final Score:        {final}")
+        # if verbose:
+        #     print(f"\n  Phase 1 (TF-IDF):   {p1:.4f} x {self.WEIGHTS['phase_1']} = {p1 * self.WEIGHTS['phase_1']:.4f}")
+        #     print(f"  Phase 2 (WordNet):  {p2:.4f} x {self.WEIGHTS['phase_2']} = {p2 * self.WEIGHTS['phase_2']:.4f}")
+        #     print(f"  Phase 3 (Syntax):   {p3:.4f} x {self.WEIGHTS['phase_3']} = {p3 * self.WEIGHTS['phase_3']:.4f}")
+        #     print(f"  ─────────────────────────────────")
+        #     print(f"  Final Score:        {final}")
 
         return final
     

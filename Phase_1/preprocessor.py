@@ -5,11 +5,23 @@ from nltk.tokenize import word_tokenize
 import re # Regular expressions for text cleaning
 import math
 
-#Download necessary NLTK resources
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('punkt_tab')
+# Only download NLTK data if it isn't already present locally.
+# Avoids repeated network/disk checks on every import (and in every
+# multiprocessing worker process).
+def _ensure_nltk_data():
+    _packages = {
+        'punkt':     'tokenizers/punkt',
+        'stopwords': 'corpora/stopwords',
+        'wordnet':   'corpora/wordnet',
+        'punkt_tab': 'tokenizers/punkt_tab',
+    }
+    for pkg, path in _packages.items():
+        try:
+            nltk.data.find(path)
+        except LookupError:
+            nltk.download(pkg, quiet=True)
+
+_ensure_nltk_data()
 
 
 class Preprocessor:

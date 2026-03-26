@@ -1,11 +1,19 @@
 import spacy
 
-#load spacy model for POS tagging
-nlp = spacy.load("en_core_web_sm")
+# Lazy-load the spaCy model: only called the first time a SyntaxParser is
+# instantiated.  This prevents the model from loading in multiprocessing
+# worker processes that never need it.
+_nlp = None
+
+def _get_nlp():
+    global _nlp
+    if _nlp is None:
+        _nlp = spacy.load("en_core_web_sm")
+    return _nlp
 
 class SyntaxParser:
     def __init__(self):
-        self.nlp = nlp
+        self.nlp = _get_nlp()
 
     #step 1: Parse sentence into dependecy tree
     def parse(self, sentence):
@@ -99,6 +107,22 @@ class SyntaxParser:
             roles["voice"] = "active"
         return roles
     
+    # Batch extract roles for a list of sentences using nlp.pipe()
+    # Much faster than calling extract_roles() one at a time because spaCy
+    # processes sentences in batches internally instead of one by one
+    def batch_extract_roles(self, sentences):
+        roles_map = {}
+        docs = list(self.nlp.pipe(sentences))
+        for sentence, doc in zip(sentences, docs):
+            if self.is_passive(doc):
+                roles = self.extract_passive_roles(doc)
+                roles["voice"] = "passive"
+            else:
+                roles = self.extract_active_roles(doc)
+                roles["voice"] = "active"
+            roles_map[sentence] = roles
+        return roles_map
+
     # Helper: print parse tree for debugging
     def print_parse(self, sentence):
         doc = self.parse(sentence)

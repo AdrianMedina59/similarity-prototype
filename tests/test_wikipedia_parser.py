@@ -2,7 +2,7 @@ import pytest
 try:
     from wikipedia_parser import parse_url_to_paragraph_sentences
 except Exception:
-    from Phase_3.wikipedia_parser import parse_url_to_paragraph_sentences
+    from wikipedia_parser import parse_url_to_paragraph_sentences
 
 
 @pytest.mark.network

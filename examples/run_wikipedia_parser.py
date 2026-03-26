@@ -19,7 +19,7 @@ try:
     from wikipedia_parser import parse_url_to_paragraph_sentences
     HAVE_TOP_LEVEL = True
 except Exception:
-    from Phase_3.wikipedia_parser import parse_url_to_paragraph_sentences
+    from wikipedia_parser import parse_url_to_paragraph_sentences
     HAVE_TOP_LEVEL = False
 
 
@@ -42,7 +42,7 @@ def main():
         if HAVE_TOP_LEVEL:
             from wikipedia_parser import vectorize_paragraphs_tfidf
         else:
-            from Phase_3.wikipedia_parser import vectorize_paragraphs_tfidf
+            from wikipedia_parser import vectorize_paragraphs_tfidf
 
         vec_result = vectorize_paragraphs_tfidf(results)
         total_sentences = len(vec_result["flat"]) 

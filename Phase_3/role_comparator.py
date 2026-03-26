@@ -67,7 +67,7 @@ class RoleComparator:
         # For verbs: antonym penalty
         if role_name == "verb":
             if self.matcher.are_direct_antonyms(value_a, value_b) or self.is_known_antonym(value_a, value_b):
-                print(f"   Antonym detected: '{value_a}' vs '{value_b}' -> penalty applied")
+                # print(f"   Antonym detected: '{value_a}' vs '{value_b}' -> penalty applied")
                 score -= self.ANTONYM_VERB_PENALTY
 
         return score
@@ -89,7 +89,7 @@ class RoleComparator:
     
     #step 3: compare all roles and compute weighted scores
     def compare_roles(self, roles_a, roles_b):
-        print(f"\n  Role comparison:")
+        # print(f"\n  Role comparison:")
 
         role_scores = {}
         total_weight = 0.0
@@ -100,7 +100,7 @@ class RoleComparator:
             score = self.compare_role(roles_a.get(role), roles_b.get(role), role)
 
             if score is None:
-                print(f"    {role:<10}: both missing → skipped")
+                # print(f"    {role:<10}: both missing → skipped")
                 continue
 
             weight = self.ROLE_WEIGHTS[role]
@@ -108,7 +108,7 @@ class RoleComparator:
             weighted_sum += score * weight
             total_weight += weight
 
-            print(f"    {role:<10}: '{roles_a.get(role)}' vs '{roles_b.get(role)}' → {score:.4f} (weight {weight})")
+            # print(f"    {role:<10}: '{roles_a.get(role)}' vs '{roles_b.get(role)}' → {score:.4f} (weight {weight})")
 
         #compare modifiers
         mod_score = self.compare_modifiers(roles_a.get("modifiers", []), roles_b.get("modifiers", []))
@@ -119,7 +119,7 @@ class RoleComparator:
             weighted_sum += mod_score * weight
             total_weight += weight
 
-            print(f"    {'modifiers':<10}: {roles_a.get('modifiers')} vs {roles_b.get('modifiers')} → {mod_score:.4f} (weight {weight})")
+            # print(f"    {'modifiers':<10}: {roles_a.get('modifiers')} vs {roles_b.get('modifiers')} → {mod_score:.4f} (weight {weight})")
 
         #normalize by actual weights used (handle missing roles)
         final_score = round(weighted_sum / total_weight, 4) if total_weight > 0 else 0.0
@@ -130,8 +130,8 @@ class RoleComparator:
         roles_a = self.parser.extract_roles(sentence_a)
         roles_b = self.parser.extract_roles(sentence_b)
 
-        print(f"\n  Roles A: {roles_a}")
-        print(f"  Roles B: {roles_b}")
+        # print(f"\n  Roles A: {roles_a}")
+        # print(f"  Roles B: {roles_b}")
 
         score = self.compare_roles(roles_a, roles_b)
         return score

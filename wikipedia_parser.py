@@ -30,6 +30,35 @@ def fetch_html(url: str, timeout: int = 10) -> str:
     return resp.text
 
 
+def filter_trivial_sentences(sentences: List[str], min_words: int = 4) -> List[str]:
+    filtered = []
+    for sent in sentences:
+        word_count = len(sent.split())
+        if word_count >= min_words:
+            filtered.append(sent)
+    return filtered
+
+def get_flat_sentences(url: str, max_paragraphs: Optional[int] = None) -> List[str]:
+    parsed = parse_url_to_paragraph_sentences(url, max_paragraphs)
+    
+    flat = []
+    for item in parsed:
+        for sentence in item["sentences"]:
+            cleaned = clean_sentence(sentence)
+            if len(cleaned.split()) >= 4:  # filter trivial
+                flat.append(cleaned)
+    
+    return flat
+
+def clean_sentence(sentence: str) -> str:
+    # Remove URLs
+    sentence = re.sub(r'http\S+', '', sentence)
+    # Remove multiple spaces
+    sentence = re.sub(r'\s+', ' ', sentence)
+    # Remove coordinates like (12°N 45°E)
+    sentence = re.sub(r'\(\d+°[NS].*?\)', '', sentence)
+    return sentence.strip()
+
 def extract_paragraphs(html: str) -> List[str]:
     soup = BeautifulSoup(html, "html.parser")
     content = soup.find(id="mw-content-text") or soup.find("div", class_="mw-parser-output")
